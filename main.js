@@ -1,21 +1,58 @@
 const tableContainer = document.querySelector('.table-wrap');
+const APIUrl = 'https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=56.84,55.27,33.48,41.48';
 
-class TableRenderer {
-	fetch() {
-		fetch('https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=56.84,55.27,33.48,41.48')
-			.then((response) => {
-				if (response.status !== 200) {
-					console.error(response.status + ': ' + response.statusText);
-					return;
-				}
-				response.json()
-					.then(data => renderTable(data))
-					.then(setTimeout(()=>this.fetch(),3000))
-			})
-			.catch((error) => {
-				console.error('error', error);
-				setTimeout(() => this.fetch(), 5000);
-			})
+// function async(generator) {
+// 	const iterator = generator();
+
+// 	function handle(iteratorResult) {
+// 		if (iteratorResult.done) { return; }
+
+// 		const iteratorValue = iteratorResult.value;
+
+// 		if (iteratorValue instanceof Promise) {
+// 			iteratorValue.then(res => handle(iterator.next(res)))
+// 						.catch(err => iterator.throw(err));
+// 		}
+// 	}
+
+// 	try {
+// 		handle(iterator.next());
+// 	} catch (err) {
+// 		iterator.throw(err);
+// 	}
+// }
+
+// async(function* () {
+	// try {
+	// 	const dataFromAPI = yield fetch('https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=56.84,55.27,33.48,41.48');
+	// 	if (dataFromAPI.status !== 200) {
+	// 		console.error(`${dataFromAPI.status}: ${dataFromAPI.statusText}`);
+	// 		return;
+	// 	}
+	// 	const planeData = yield dataFromAPI.json();
+	// 	renderTable(planeData);
+	// } catch (err) {
+		
+	// }
+// });
+
+function DataFetcher (url) {
+	this.fetch = async () => {
+		try {
+			const dataFromAPI = await fetch(url);
+			if (dataFromAPI.status !== 200) {
+				console.error(`${dataFromAPI.status}: ${dataFromAPI.statusText}`);
+				return;
+			}
+			const planeData = await dataFromAPI.json();
+			renderTable(planeData);
+			setTimeout(()=>this.fetch(),3000);
+		} 
+		
+		catch (err) {
+			console.error('error: ', err);
+			setTimeout(() => this.fetch(), 5000);
+		}
 	}
 }
 
@@ -61,5 +98,5 @@ function renderTable(planeData) {
 		}
 	}
 };
-const planeTable = new TableRenderer;
-planeTable.fetch();
+const planeFetcher = new DataFetcher(APIUrl);
+planeFetcher.fetch();
