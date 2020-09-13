@@ -36,24 +36,21 @@ const APIUrl = 'https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=56
 	// }
 // });
 
-function DataFetcher (url) {
-	this.fetch = async () => {
+async function dataFetcher (url) {
 		try {
 			const dataFromAPI = await fetch(url);
 			if (dataFromAPI.status !== 200) {
-				console.error(`${dataFromAPI.status}: ${dataFromAPI.statusText}`);
-				return;
+				throw `${dataFromAPI.status}: ${dataFromAPI.statusText}`;
 			}
 			const planeData = await dataFromAPI.json();
 			renderTable(planeData);
-			setTimeout(()=>this.fetch(),3000);
+			setTimeout(() => dataFetcher(url),3000);
 		} 
 		
 		catch (err) {
 			console.error('error: ', err);
-			setTimeout(() => this.fetch(), 5000);
+			setTimeout(() => dataFetcher(url), 5000);
 		}
-	}
 }
 
 const tableHeader = `<table>
@@ -98,5 +95,5 @@ function renderTable(planeData) {
 		}
 	}
 };
-const planeFetcher = new DataFetcher(APIUrl);
-planeFetcher.fetch();
+
+dataFetcher(APIUrl);
